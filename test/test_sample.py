@@ -1,5 +1,5 @@
 import torch
-from torch_sparse import SparseTensor, sample_adj
+from torch_sparse import SparseTensor, sample_adj, sample
 
 
 def test_sample_adj():
@@ -24,3 +24,15 @@ def test_sample_adj():
     out, n_id = sample_adj(adj_t, torch.arange(2, 6), num_neighbors=2,
                            replace=False)
     assert out.nnz() == 7  # node 3 has only one edge...
+
+
+def test_sample():
+    row = torch.tensor([0, 0, 0, 1, 1, 2, 2, 2, 2, 3, 4, 4, 5, 5])
+    col = torch.tensor([1, 2, 3, 0, 2, 0, 1, 4, 5, 0, 2, 5, 2, 4])
+    value = torch.arange(row.size(0))
+    num_neighbors = 1
+    adj_t = SparseTensor(row=row, col=col, value=value, sparse_sizes=(6, 6))
+    samples: torch.Tensor = sample(adj_t, subset=torch.arange(2, 6), num_neighbors=1)
+
+    assert samples.shape[0] == row.shape[0]
+    assert samples.shape[1] == num_neighbors
